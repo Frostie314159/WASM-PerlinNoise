@@ -6,9 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <script type="module">
-        import init, {generate_terrain_mesh} from "./pkg/perlin_noise.js";
+        import init, {generate_terrain_mesh, get_range_from_array} from "./pkg/perlin_noise.js";
         init().then(() => {
-            console.log(generate_terrain_mesh(75));
+            const RESOLUTION = 1;
+            const VERTEX_COUNT =  Math.pow(RESOLUTION + 1, 2);
+            const INDEX_COUNT = Math.pow(RESOLUTION, 2) * 6;
+            var array = generate_terrain_mesh(RESOLUTION, 10);
+            var vertices = get_range_from_array(array, 0, VERTEX_COUNT * 3);
+            var normals = get_range_from_array(array, VERTEX_COUNT * 3, VERTEX_COUNT * 6);
+            var texCords = get_range_from_array(array, VERTEX_COUNT * 6, VERTEX_COUNT * 8);
+            var indices = get_range_from_array(array, VERTEX_COUNT * 8, VERTEX_COUNT * 8 + INDEX_COUNT);
+            console.log([array, vertices, normals, texCords, indices]);
         });
     </script>
 </head>
