@@ -8,10 +8,10 @@ fn lcg_random(seed: f32) -> f32{
     let rand: f32 = (((214013.0 * seed + 2531011.0) % 2147483648.0) / 65536.0) * seed.cos() % 1.0;
     return if rand > 0.0 { rand } else { -rand };
 }
-fn get_noise(seed: u32, x: f32, z: f32) -> f32{
+fn get_noise(seed: i32, x: f32, z: f32) -> f32{
     return lcg_random((x * 123123.0 + z * 324234.0 + (seed as f32)).ceil());
 }
-fn get_smooth_noise(seed: u32, x: f32, z: f32) -> f32{
+fn get_smooth_noise(seed: i32, x: f32, z: f32) -> f32{
     let corners: f32 = (get_noise(seed, x - 1.0, z - 1.0) + get_noise(seed, x - 1.0, z + 1.0) + get_noise(seed, x + 1.0, z - 1.0) + get_noise(seed, x + 1.0, z + 1.0)) / 16.0;
     let sides: f32 = (get_noise(seed, x - 1.0, z) + get_noise(seed, x, z + 1.0) + get_noise(seed, x + 1.0, z) + get_noise(seed, x, z - 1.0)) / 8.0;
     let middle: f32 = get_noise(seed, x, z) / 4.0;
@@ -21,7 +21,7 @@ fn interpolate(a: f32, b: f32, blend: f32) -> f32{
     let f: f32 = (1.0 - (blend * std::f32::consts::PI)) * 0.5;
     return a * (1.0 - f) + b * f;
 }
-fn get_interpolated_noise(seed: u32, x: f32, z: f32) -> f32{
+fn get_interpolated_noise(seed: i32, x: f32, z: f32) -> f32{
     let int_x: i32 = x as i32;
     let int_z: i32 = z as i32;
     let frac_x: f32 = x - (int_x as f32);
@@ -36,7 +36,7 @@ fn get_interpolated_noise(seed: u32, x: f32, z: f32) -> f32{
     let i2: f32 = interpolate(v3, v4, frac_x);
     return interpolate(i1, i2, frac_z);
 }
-fn get_height(seed: u32, x: f32, z: f32) -> f32{
+fn get_height(seed: i32, x: f32, z: f32) -> f32{
     let mut total: f32 = 0.0;
     let d: u32 = (OCTAVES - 1).pow(2) as u32;
     for index in 0..OCTAVES{
@@ -56,14 +56,14 @@ pub fn generate_terrain_mesh(resolution: u32, tile_size: u32) -> js_sys::Float32
     let texture_cord_offset: u32 = normal_offset + vertex_count * 3;
     let index_offset: u32 = texture_cord_offset + vertex_count * 2;
     let step_size: f32 = (tile_size as f32) / (resolution as f32);
-    let seed: u32 = js_sys::Math::random() as u32;
+    let seed: i32 = js_sys::Math::random() as i32;
     let data: js_sys::Float32Array = js_sys::Float32Array::new(&wasm_bindgen::JsValue::from_f64((vertex_count * 3 + vertex_count * 3 + vertex_count * 2 + index_count) as f64));
     for z in 0..vertices_per_row{
         for x in 0..vertices_per_row{
             let index: u32 = (z + x * vertices_per_row) as u32;
             data.set_index(index * 3 + vertex_offset, (((x as i32) * 2 - 1) as f32) * step_size);
             data.set_index(index * 3 + vertex_offset + 2, (((z as i32) * 2 - 1) as f32) * step_size);
-            data.set_index(index * 3 + vertex_offset + 1, get_height(seed, data.get_index(index * 3 + vertex_offset), data.get_index(index * 3 + vertex_offset + 2)));
+            data.set_index(index * 3 + vertex_offset + 1, 0.0);
             
             data.set_index(index * 2 + texture_cord_offset, (x as f32) * step_size);
             data.set_index(index * 2 + texture_cord_offset + 1, (z as f32) * step_size);
